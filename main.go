@@ -11,19 +11,19 @@ import (
 	"strings"
 )
 
-type id string
-
 type segment struct {
-	start, end int64
+	id         string
+	start, end float64
 }
 
-// Implement sort.Interface
-// https://golang.org/pkg/sort/#Interface
-type int64arr []int64
+type pointImpl struct {
+	location float64
+	in       []string
+}
 
-func (a int64arr) Len() int           { return len(a) }
-func (a int64arr) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a int64arr) Less(i, j int) bool { return a[i] < a[j] }
+type point interface {
+	belongsTo() []string
+}
 
 func main() {
 	// Read a file with tuples [id, start, end]
@@ -36,9 +36,8 @@ func main() {
 	r := bytes.NewReader(b)
 	scanner := bufio.NewScanner(r)
 	var line string
-	var s segment
 	var start, end float64
-	segments := make(map[id]segment)
+	var segments []segment
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			panic(err)
@@ -56,26 +55,31 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		s.start = int64(start)
 		end, err = strconv.ParseFloat(vals[2], 64)
 		if err != nil {
 			panic(err)
 		}
-		s.end = int64(end)
-		segments[id(vals[0])] = s
+		segments = append(segments, segment{id: vals[0], start: start, end: end})
 	}
 
 	// Concatenate the start and end points
-	var points int64arr
+	// Use a map so as to remove duplicates
+	pointsMap := make(map[float64]bool)
 	for _, v := range segments {
-		points = append(points, v.start, v.end)
+		pointsMap[v.start] = true
+		pointsMap[v.end] = true
+	}
+	// Turn into a slice so that you can sort it in ascending order.
+	var pointsList []float64
+	for k := range pointsMap {
+		pointsList = append(pointsList, k)
 	}
 	// Sort them in ascending order
-	sort.Sort(points)
+	sort.Float64s(pointsList)
 	// Record the counts for each point
 	var counts []int
 	var count int
-	for _, p := range points {
+	for _, p := range pointsList {
 		count = 0
 		// Given a point, let's figure out the segments it belongs to
 		for _, s := range segments {
@@ -87,7 +91,8 @@ func main() {
 	}
 
 	// Debug
-	for i := 0; i < len(points); i++ {
-		fmt.Printf("[%d] %d\n", points[i], counts[i])
+	for i := 0; i < len(pointsList); i++ {
+		fmt.Printf("[%f] %d\n", pointsList[i], counts[i])
 	}
+	fmt.Printf("\nNumber of points overall: %d\nNumber of unique points: %d\n", 2*len(segments), len(pointsMap))
 }
