@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-type segment struct {
+type segmentImpl struct {
 	id         string
 	start, end float64
 }
@@ -22,7 +22,17 @@ type pointImpl struct {
 }
 
 type point interface {
+	addTo(segmentID string) int
 	belongsTo() []string
+}
+
+func (p *pointImpl) addTo(segmentID string) int {
+	p.in = append(p.in, segmentID)
+	return len(p.in)
+}
+
+func (p *pointImpl) belongsTo() []string {
+	return p.in
 }
 
 func main() {
@@ -37,7 +47,7 @@ func main() {
 	scanner := bufio.NewScanner(r)
 	var line string
 	var start, end float64
-	var segments []segment
+	var segments []segmentImpl
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			panic(err)
@@ -59,40 +69,44 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		segments = append(segments, segment{id: vals[0], start: start, end: end})
+		segments = append(segments, segmentImpl{id: vals[0], start: start, end: end})
 	}
+	// Debug
+	fmt.Println("Number of segments:", len(segments))
 
 	// Concatenate the start and end points
 	// Use a map so as to remove duplicates
-	pointsMap := make(map[float64]bool)
+	locMap := make(map[float64]bool)
 	for _, v := range segments {
-		pointsMap[v.start] = true
-		pointsMap[v.end] = true
+		locMap[v.start] = true
+		locMap[v.end] = true
 	}
-	// Turn into a slice so that you can sort it in ascending order.
-	var pointsList []float64
-	for k := range pointsMap {
-		pointsList = append(pointsList, k)
+	// Debug
+	fmt.Println("Number of unique points:", len(locMap))
+
+	// Turn into a slice so that you can sort it in ascending order
+	var locList []float64
+	for k := range locMap {
+		locList = append(locList, k)
 	}
 	// Sort them in ascending order
-	sort.Float64s(pointsList)
-	// Record the counts for each point
-	var counts []int
-	var count int
-	for _, p := range pointsList {
-		count = 0
-		// Given a point, let's figure out the segments it belongs to
+	sort.Float64s(locList)
+	// Debug
+	fmt.Println("Number of points in sorted list:", len(locList))
+
+	// Record the segments that each point belongs to
+	var points []*pointImpl
+	for _, loc := range locList {
+		p := &pointImpl{location: loc}
 		for _, s := range segments {
-			if p >= s.start && p <= s.end {
-				count++
+			if loc >= s.start && loc <= s.end {
+				_ = p.addTo(s.id)
 			}
 		}
-		counts = append(counts, count)
+		points = append(points, p)
 	}
-
 	// Debug
-	for i := 0; i < len(pointsList); i++ {
-		fmt.Printf("[%f] %d\n", pointsList[i], counts[i])
+	for i := 0; i < len(points); i++ {
+		fmt.Printf("[%.0f] %d\n", points[i].location, len(points[i].belongsTo()))
 	}
-	fmt.Printf("\nNumber of points overall: %d\nNumber of unique points: %d\n", 2*len(segments), len(pointsMap))
 }
