@@ -103,10 +103,12 @@ func main() {
 				_ = p.addTo(s.id)
 			}
 		}
+		// Sort the segments alphabetically
+		sort.Strings(p.in)
 		points = append(points, p)
 	}
 	// Debug
 	for i := 0; i < len(points); i++ {
-		fmt.Printf("[%.0f] %d\n", points[i].location, len(points[i].belongsTo()))
+		fmt.Printf("%0.f\t%d\n", points[i].location, len(points[i].belongsTo()))
 	}
 }
