@@ -7,8 +7,8 @@ import (
 )
 
 func TestPoint(t *testing.T) {
-	p := pointImpl{location: 1}
-	p.addTo("foo")
+	p := pointImpl{loc: 1}
+	p.addTo(1)
 	// See: https://npf.io/2017/08/lies/
-	require.Equal(t, []string{"foo"}, p.in)
+	require.Equal(t, []int{1}, p.in)
 }
