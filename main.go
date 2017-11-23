@@ -72,7 +72,7 @@ func main() {
 		segments = append(segments, segmentImpl{id: vals[0], start: start, end: end})
 	}
 	// Debug
-	fmt.Println("Number of segments:", len(segments))
+	// fmt.Println("Number of segments:", len(segments))
 
 	// Concatenate the start and end points
 	// Use a map so as to remove duplicates
@@ -82,7 +82,7 @@ func main() {
 		locMap[v.end] = true
 	}
 	// Debug
-	fmt.Println("Number of unique points:", len(locMap))
+	// fmt.Println("Number of unique points:", len(locMap))
 
 	// Turn into a slice so that you can sort it in ascending order
 	var locList []float64
@@ -92,7 +92,7 @@ func main() {
 	// Sort them in ascending order
 	sort.Float64s(locList)
 	// Debug
-	fmt.Println("Number of points in sorted list:", len(locList))
+	// fmt.Println("Number of points in sorted list:", len(locList))
 
 	// Record the segments that each point belongs to
 	var points []*pointImpl
@@ -108,7 +108,45 @@ func main() {
 		points = append(points, p)
 	}
 	// Debug
-	for i := 0; i < len(points); i++ {
+	/* for i := 0; i < len(points); i++ {
 		fmt.Printf("%0.f\t%d\n", points[i].location, len(points[i].belongsTo()))
+	} */
+
+	// `locList` carries the monotonically increasing list of points
+	// `points` carries the same list, plus the segments that each point corresponds to
+
+	// result includes the data we're interested in
+	result := make(map[float64]map[float64][]string)
+	for i := 0; i < len(points)-1; i++ {
+		// Initialize the inner map
+		// See: https://stackoverflow.com/a/44305711/2363529
+		result[points[i].location] = make(map[float64][]string)
+		// What are the segments that go over this point?
+		segStart := points[i].belongsTo()
+		for j := len(points) - 1; j > i; j-- {
+			var overlap []string
+			// What are the segments that go over this point?
+			segEnd := points[j].belongsTo()
+			// What is the overlap between segStart and segEnd?
+			for _, seg1 := range segStart {
+				for _, seg2 := range segEnd {
+					if strings.Compare(seg1, seg2) == 0 {
+						overlap = append(overlap, seg1)
+						break // Let's move on to the next item in segStart
+					}
+				}
+			}
+			if len(overlap) > 0 {
+				result[points[i].location][points[j].location] = overlap
+			}
+			// Now let's examine the next segEnd...
+		}
+	}
+	// Debug
+	for k1, v1 := range result {
+		for k2, v2 := range v1 {
+			fmt.Printf("Overlap starting from %0.f and ending at %0.f (length: %0.f) shared by %d segments: %v\n",
+				k1, k2, k2-k1, len(v2), v2)
+		}
 	}
 }
