@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/kchristidis/overlap"
@@ -12,12 +13,12 @@ func main() {
 	// Use the library
 	results, err := overlap.Calculate("unix_tuples.txt")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// Write results to file
 	f, err := os.Create("results.txt")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
