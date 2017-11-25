@@ -16,6 +16,17 @@ func TestBadFile(t *testing.T) {
 	require.Error(t, err, "expected error")
 }
 
+func TestIncompleteLine(t *testing.T) {
+	f, err := ioutil.TempFile("", "good.file")
+	require.Nil(t, err, "could not create temp file")
+	defer os.Remove(f.Name())
+	badLine := []byte("1\t0") // 2 fields
+	_, err = f.Write(badLine)
+	require.Nil(t, err, "could not write to input file")
+	_, err = Calculate(f.Name())
+	require.Error(t, err, "expected error")
+}
+
 func TestPoint(t *testing.T) {
 	p := pointImpl{loc: 1}
 	p.addTo(1)
