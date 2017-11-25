@@ -52,7 +52,7 @@ func Calculate(filePath string) ([]Result, error) {
 	// Load a file with tuples [id, start, end]
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not read file %s: %s", filePath, err)
+		return nil, fmt.Errorf("could not read file %s = %s", filePath, err)
 	}
 
 	// Read file into slice
@@ -78,15 +78,15 @@ func Calculate(filePath string) ([]Result, error) {
 		// Convert to the appropriate types
 		segment.id, err = strconv.Atoi(vals[0])
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 1, row %d to an integer: %s", vals[0], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 1, row %d to an integer = %s", vals[0], count, err)
 		}
 		segment.start, err = strconv.ParseFloat(vals[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number: %s", vals[1], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number = %s", vals[1], count, err)
 		}
 		segment.end, err = strconv.ParseFloat(vals[2], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number: %s", vals[2], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number = %s", vals[2], count, err)
 		}
 		segments = append(segments, segment)
 	}
