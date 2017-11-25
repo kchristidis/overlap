@@ -23,7 +23,7 @@ func main() {
 	w := bufio.NewWriter(f)
 	for _, v := range results {
 		fmt.Fprintf(w, "%.2f\t%0.f\t%0.f\t%d\t%v\n",
-			v.OverlapLength/(60*60*8760),
+			v.OverlapLength/(60*60*8760), // Convert to years
 			v.OverlapStart, v.OverlapEnd,
 			v.SegmentCount, v.SegmentList)
 	}

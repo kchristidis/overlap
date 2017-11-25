@@ -100,7 +100,7 @@ func Calculate(filePath string) ([]Result, error) {
 	}
 
 	// Turn into slice so that you can sort in ascending order
-	var locList []float64
+	locList := make([]float64, len(locMap))
 	for k := range locMap {
 		locList = append(locList, k)
 	}
@@ -108,7 +108,7 @@ func Calculate(filePath string) ([]Result, error) {
 	sort.Float64s(locList)
 
 	// Recrod the segments that each point belongs to
-	var points []*pointImpl
+	points := make([]*pointImpl, len(locList))
 	for _, loc := range locList {
 		p := &pointImpl{loc: loc}
 		for _, s := range segments {
