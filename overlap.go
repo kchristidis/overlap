@@ -107,7 +107,7 @@ func Calculate(filePath string) ([]Result, error) {
 	// Sort list in ascending order
 	sort.Float64s(locList)
 
-	// Recrod the segments that each point belongs to
+	// Record the segments that each point belongs to
 	points := make([]*pointImpl, len(locList))
 	for _, loc := range locList {
 		p := &pointImpl{loc: loc}
