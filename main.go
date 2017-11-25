@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -37,20 +39,22 @@ func (p *pointImpl) belongsTo() []int {
 	return p.in
 }
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
 	// Create a logger
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		panic(err)
-	}
+	logger, err := zap.NewProduction()
+	check(err)
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
 	// Load a file with tuples [id, start, end]
 	b, err := ioutil.ReadFile("unix_tuples.txt")
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	// Read file into slice
 	r := bytes.NewReader(b)
@@ -59,9 +63,8 @@ func main() {
 	var segment segmentImpl
 	var segments []segmentImpl
 	for scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			panic(err)
-		}
+		err = scanner.Err()
+		check(err)
 		line = scanner.Text()
 		// We now have a line
 		// Does it have 3 fields?
@@ -72,17 +75,11 @@ func main() {
 		// The line has 3 fields as expected
 		// Let's convert to the appropriate types
 		segment.id, err = strconv.Atoi(vals[0])
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		segment.start, err = strconv.ParseFloat(vals[1], 64)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		segment.end, err = strconv.ParseFloat(vals[2], 64)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		segments = append(segments, segment)
 	}
 	sugar.Debug("Number of segments in file: ", len(segments))
@@ -153,10 +150,21 @@ func main() {
 		}
 	}
 
+	// Write results to file
+	f, err := os.Create("results.txt")
+	check(err)
+	defer f.Close()
+	w := bufio.NewWriter(f)
 	for k1, v1 := range result {
 		for k2, v2 := range v1 {
+			// Line format:
+			// overlap length (years) - overlap start - overlap end - segment count - segment list
+			_, err := fmt.Fprintf(w, "%.2f\t%0.f\t%0.f\t%d\t%v\n", (k2-k1)/(60*60*8760), k1, k2, len(v2), v2)
+			check(err)
+			// Print to screen
 			sugar.Debugf("Overlap starting from %0.f (%s) and ending at %0.f (%s) (length: %.1fd) shared by %d segments: %v\n",
 				k1, time.Unix(int64(k1), 0), k2, time.Unix(int64(k2), 0), (k2-k1)/60/60/24, len(v2), v2)
 		}
 	}
+	w.Flush()
 }
