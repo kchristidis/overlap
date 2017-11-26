@@ -101,15 +101,17 @@ func Calculate(filePath string) ([]Result, error) {
 
 	// Turn into slice so that you can sort in ascending order
 	locList := make([]float64, len(locMap))
+	index := 0
 	for k := range locMap {
-		locList = append(locList, k)
+		locList[index] = k
+		index++
 	}
 	// Sort list in ascending order
 	sort.Float64s(locList)
 
 	// Record the segments that each point belongs to
 	points := make([]*pointImpl, len(locList))
-	for _, loc := range locList {
+	for i, loc := range locList {
 		p := &pointImpl{loc: loc}
 		for _, s := range segments {
 			if loc >= s.start && loc <= s.end {
@@ -118,7 +120,7 @@ func Calculate(filePath string) ([]Result, error) {
 		}
 		// Sort the segments in ascending order
 		sort.Ints(p.in)
-		points = append(points, p)
+		points[i] = p
 	}
 
 	// `locList` carries the monotonically increasing list of unique points
