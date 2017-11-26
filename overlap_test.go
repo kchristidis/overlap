@@ -8,6 +8,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestPoint(t *testing.T) {
+	p := pointImpl{loc: 0.5}
+	p.addTo(0)
+	p.addTo(1)
+	// See: https://npf.io/2017/08/lies/
+	require.Equal(t, len(p.belongsTo()), 2, "expected different segment count")
+}
+
 func TestBadFile(t *testing.T) {
 	f, err := ioutil.TempFile("", "bad.file")
 	require.Nil(t, err, "could not create temp file")
@@ -31,11 +39,4 @@ func TestBadLines(t *testing.T) {
 		_, err = Calculate(f.Name())
 		require.Error(t, err, "expected error")
 	}
-}
-
-func TestPoint(t *testing.T) {
-	p := pointImpl{loc: 1}
-	p.addTo(1)
-	// See: https://npf.io/2017/08/lies/
-	require.Equal(t, []int{1}, p.in)
 }
