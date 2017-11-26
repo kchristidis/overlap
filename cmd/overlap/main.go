@@ -10,13 +10,20 @@ import (
 )
 
 func main() {
+	// Parse the command-line arguments
+	args := os.Args
+	inFile := args[1]
+	outFile := args[1] + ".out"
+	if len(args) >= 3 {
+		outFile = args[2]
+	}
 	// Use the library
-	results, err := overlap.Calculate("unix_tuples.txt")
+	results, err := overlap.Calculate(inFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Write results to file
-	f, err := os.Create("results.txt")
+	f, err := os.Create(outFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,4 +36,5 @@ func main() {
 			v.SegmentCount, v.SegmentList)
 	}
 	w.Flush()
+	log.Println("Wrote: ", f.Name())
 }
