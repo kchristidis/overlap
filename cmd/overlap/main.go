@@ -28,8 +28,7 @@ func main() {
 	}
 	defer f.Close()
 	w := csv.NewWriter(f)
-	w.WriteAll(results) // calls Flush internally
-	if err := w.Error(); err != nil {
+	if err := w.WriteAll(results); err != nil { // calls Flush internally
 		log.Fatal(err)
 	}
 	log.Println("Wrote: ", f.Name())
