@@ -29,10 +29,10 @@ func TestBadLines(t *testing.T) {
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
 	lines := make([][]byte, 4)
-	lines[0] = []byte("0\t100")
-	lines[1] = []byte("foo\t100\t200")
-	lines[2] = []byte("0\tfoo\t200")
-	lines[3] = []byte("0\t100\tfoo")
+	lines[0] = []byte("0,100")
+	lines[1] = []byte("foo,100,200")
+	lines[2] = []byte("0,foo,200")
+	lines[3] = []byte("0,100,foo")
 	for i := range lines { // https://stackoverflow.com/a/39806983/2363529
 		_, err = f.WriteAt(lines[i], 0)
 		require.Nil(t, err, "could not write to input file")
@@ -46,7 +46,7 @@ func TestCalculate(t *testing.T) {
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
 	// https://stackoverflow.com/a/39806983/2363529
-	lines := []byte("0\t50.0\t150.0" + "\n" + "1\t100\t200.0")
+	lines := []byte("0,50.0,150.0" + "\n" + "1,100,200.0")
 	_, err = f.Write(lines)
 	require.Nil(t, err, "could not write to input file")
 	res, err := Calculate(f.Name())

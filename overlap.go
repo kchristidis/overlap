@@ -1,13 +1,12 @@
 package overlap
 
 import (
-	"bufio"
 	"bytes"
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type pointImpl struct {
@@ -44,49 +43,46 @@ type Result struct {
 	SegmentList              []int
 }
 
-// Calculate reads a file with segments and returns a slice of their overlaps.
+// Calculate reads a CSV file with segments and returns a slice identifying their overlaps.
 // Each line (segment) in the input file should follow the format:
 //		segment_id(int) segment_start(float64) segment_end(float64)
 // The fields are tab-separated. Their types are listed in parentheses.
 func Calculate(filePath string) ([]Result, error) {
-	// Load a file with tuples [id, start, end]
+	// Load a CSV file with tuples [id, start, end]
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file %s = %s", filePath, err)
 	}
 
-	// Read file into slice
-	r := bytes.NewReader(b)
-	scanner := bufio.NewScanner(r)
-	var count int
-	var line string
+	// Read file into a slice of records
+	r1 := bytes.NewReader(b)
+	r2 := csv.NewReader(r1)
+	records, err := r2.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("could not read CSV file = %s", err)
+	}
+
+	// Parse into segments
 	var segment segmentImpl
 	var segments []segmentImpl
-	for scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			return nil, err
+	for i, record := range records {
+		// Does the record have 3 fields?
+		if len(record) != 3 {
+			return nil, fmt.Errorf("expected 3 fields per line in row %d, got %d instead", i, len(record))
 		}
-		line = scanner.Text()
-		// We now have a line
-		count++
-		// Does it have 3 fields?
-		vals := strings.Split(line, "\t")
-		if len(vals) != 3 {
-			return nil, fmt.Errorf("expected 3 fields per line, got %d instead", len(vals))
-		}
-		// The line has 3 fields as expected
+		// The record has 3 fields as expected
 		// Convert to the appropriate types
-		segment.id, err = strconv.Atoi(vals[0])
+		segment.id, err = strconv.Atoi(record[0])
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 1, row %d to an integer = %s", vals[0], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 1, row %d to an integer = %s", record[0], i, err)
 		}
-		segment.start, err = strconv.ParseFloat(vals[1], 64)
+		segment.start, err = strconv.ParseFloat(record[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number = %s", vals[1], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number = %s", record[1], i, err)
 		}
-		segment.end, err = strconv.ParseFloat(vals[2], 64)
+		segment.end, err = strconv.ParseFloat(record[2], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number = %s", vals[2], count, err)
+			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number = %s", record[2], i, err)
 		}
 		segments = append(segments, segment)
 	}

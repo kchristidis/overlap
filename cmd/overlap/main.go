@@ -13,7 +13,7 @@ func main() {
 	// Parse the command-line arguments
 	args := os.Args
 	inFile := args[1]
-	outFile := args[1] + ".overlap"
+	outFile := args[1] + ".out"
 	if len(args) >= 3 {
 		outFile = args[2]
 	}
