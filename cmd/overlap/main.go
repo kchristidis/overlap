@@ -36,5 +36,5 @@ func main() {
 	if err := w.WriteAll(results); err != nil { // calls Flush internally
 		log.Fatal(err)
 	}
-	log.Println("Wrote: ", f.Name())
+	log.Printf("Wrote %d records in %s\n", len(results)-1, f.Name())
 }
