@@ -7,47 +7,49 @@ import (
 	"io/ioutil"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type pointImpl struct {
 	loc float64
-	in  []int
+	in  []string
 }
 
 type point interface {
-	addTo(segmentID int) int
-	belongsTo() []int
+	addTo(segmentID string) int
+	belongsTo() []string
 }
 
-func (p *pointImpl) addTo(segmentID int) int {
+func (p *pointImpl) addTo(segmentID string) int {
 	p.in = append(p.in, segmentID)
 	return len(p.in)
 }
 
-func (p *pointImpl) belongsTo() []int {
+func (p *pointImpl) belongsTo() []string {
 	return p.in
 }
 
 type segmentImpl struct {
-	id         int
+	id         string
 	start, end float64
 }
 
-// Result describes an overlap. It carries its length, its start
-// and end points, the number of segments that go over it, as well
-// as their IDs.
-type Result struct {
-	OverlapLength            float64
-	OverlapStart, OverlapEnd float64
-	SegmentCount             int
-	SegmentList              []int
-}
+// Used for setting Calculate's return object.
+const (
+	overlapLength = iota
+	overlapStart
+	overlapEnd
+	segmentCount
+	segmentList
+)
 
 // Calculate reads a CSV file with segments and returns a slice identifying their overlaps.
-// Each line (segment) in the input file should follow the format:
-//		segment_id(int) segment_start(float64) segment_end(float64)
-// The fields are tab-separated. Their types are listed in parentheses.
-func Calculate(filePath string) ([]Result, error) {
+// Each CSV record should identify a segment and consist of exactly three fields:
+//
+//		segment_id(string),segment_start(float64),segment_end(float64)
+//
+// The type of each field is included in parentheses.
+func Calculate(filePath string) ([][]string, error) {
 	// Load a CSV file with tuples [id, start, end]
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -72,10 +74,6 @@ func Calculate(filePath string) ([]Result, error) {
 		}
 		// The record has 3 fields as expected
 		// Convert to the appropriate types
-		segment.id, err = strconv.Atoi(record[0])
-		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 1, row %d to an integer = %s", record[0], i, err)
-		}
 		segment.start, err = strconv.ParseFloat(record[1], 64)
 		if err != nil {
 			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number = %s", record[1], i, err)
@@ -84,6 +82,7 @@ func Calculate(filePath string) ([]Result, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number = %s", record[2], i, err)
 		}
+		segment.id = record[0]
 		segments = append(segments, segment)
 	}
 
@@ -114,29 +113,29 @@ func Calculate(filePath string) ([]Result, error) {
 				_ = p.addTo(s.id)
 			}
 		}
-		// Sort the segments in ascending order
-		sort.Ints(p.in)
+		// Sort the segments in increasing order
+		sort.Strings(p.in)
 		points[i] = p
 	}
 
 	// `locList` carries the monotonically increasing list of unique points
 	// `points` carries the same list, plus the segments that each point corresponds to
 	// `resMap` includes the data we're interested in
-	resMap := make(map[float64]map[float64][]int)
+	resMap := make(map[float64]map[float64][]string)
 	for i := 0; i < len(points)-1; i++ {
 		// Initialize the inner map
 		// See: https://stackoverflow.com/a/44305711/2363529
-		resMap[points[i].loc] = make(map[float64][]int)
+		resMap[points[i].loc] = make(map[float64][]string)
 		// What are the segments that go over this point?
 		segStart := points[i].belongsTo()
 		for j := len(points) - 1; j > i; j-- {
-			var overlap []int
+			var overlap []string
 			// What are the segments that go over this point?
 			segEnd := points[j].belongsTo()
 			// What is the overlap between segStart and segEnd?
 			for _, seg1 := range segStart {
 				for _, seg2 := range segEnd {
-					if seg1 == seg2 {
+					if strings.Compare(seg1, seg2) == 0 {
 						overlap = append(overlap, seg1)
 						break // Let's move on to the next item in segStart
 					}
@@ -150,19 +149,16 @@ func Calculate(filePath string) ([]Result, error) {
 	}
 
 	// Return
-	var results []Result
+	var results [][]string
+	result := make([]string, segmentList+1)
 	for k1, v1 := range resMap {
 		for k2, v2 := range v1 {
-			// Line format:
-			// overlap length (years) - overlap start - overlap end - segment count - segment list
-			r := Result{
-				OverlapLength: k2 - k1,
-				OverlapStart:  k1,
-				OverlapEnd:    k2,
-				SegmentCount:  len(v2),
-				SegmentList:   v2,
-			}
-			results = append(results, r)
+			result[overlapLength] = strconv.FormatFloat(k2-k1, 'f', -1, 64)
+			result[overlapStart] = strconv.FormatFloat(k1, 'f', -1, 64)
+			result[overlapEnd] = strconv.FormatFloat(k2, 'f', -1, 64)
+			result[segmentCount] = strconv.Itoa(len(v2))
+			result[segmentList] = strings.Join(v2, ",")
+			results = append(results, result)
 		}
 	}
 

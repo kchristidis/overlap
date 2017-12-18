@@ -1,8 +1,7 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
+	"encoding/csv"
 	"log"
 	"os"
 
@@ -13,7 +12,7 @@ func main() {
 	// Parse the command-line arguments
 	args := os.Args
 	inFile := args[1]
-	outFile := args[1] + ".out"
+	outFile := "out_" + args[1] // allows us to keep the file extension
 	if len(args) >= 3 {
 		outFile = args[2]
 	}
@@ -28,13 +27,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	w := bufio.NewWriter(f)
-	for _, v := range results {
-		fmt.Fprintf(w, "%.2f\t%0.f\t%0.f\t%d\t%v\n",
-			v.OverlapLength/(60*60*8760), // Convert to years
-			v.OverlapStart, v.OverlapEnd,
-			v.SegmentCount, v.SegmentList)
+	w := csv.NewWriter(f)
+	w.WriteAll(results) // calls Flush internally
+	if err := w.Error(); err != nil {
+		log.Fatal(err)
 	}
-	w.Flush()
 	log.Println("Wrote: ", f.Name())
 }

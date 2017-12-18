@@ -3,6 +3,8 @@ package overlap
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,8 +12,8 @@ import (
 
 func TestPoint(t *testing.T) {
 	p := pointImpl{loc: 0.5}
-	p.addTo(0)
-	p.addTo(1)
+	p.addTo("foo")
+	p.addTo("bar")
 	// See: https://npf.io/2017/08/lies/
 	require.Equal(t, len(p.belongsTo()), 2, "expected different segment count")
 }
@@ -28,11 +30,10 @@ func TestBadLines(t *testing.T) {
 	f, err := ioutil.TempFile("", "good.file")
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
-	lines := make([][]byte, 4)
+	lines := make([][]byte, 3)
 	lines[0] = []byte("0,100")
-	lines[1] = []byte("foo,100,200")
-	lines[2] = []byte("0,foo,200")
-	lines[3] = []byte("0,100,foo")
+	lines[1] = []byte("0,foo,200")
+	lines[2] = []byte("0,100,foo")
 	for i := range lines { // https://stackoverflow.com/a/39806983/2363529
 		_, err = f.WriteAt(lines[i], 0)
 		require.Nil(t, err, "could not write to input file")
@@ -46,17 +47,17 @@ func TestCalculate(t *testing.T) {
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
 	// https://stackoverflow.com/a/39806983/2363529
-	lines := []byte("0,50.0,150.0" + "\n" + "1,100,200.0")
+	lines := []byte("foo,50.0,150.0" + "\n" + "bar,100,200.0")
 	_, err = f.Write(lines)
 	require.Nil(t, err, "could not write to input file")
 	res, err := Calculate(f.Name())
 	require.Nil(t, err, "expected no error")
 	require.Equal(t, len(res), 1, "expected 1 overlap")
-	require.Equal(t, res[0], Result{
-		OverlapLength: float64(50),
-		OverlapStart:  float64(100),
-		OverlapEnd:    float64(150),
-		SegmentCount:  2,
-		SegmentList:   []int{0, 1},
+	require.Equal(t, res[0], []string{
+		strconv.FormatFloat(50, 'f', -1, 64),      // overlapLength
+		strconv.FormatFloat(100, 'f', -1, 64),     // overlapStart
+		strconv.FormatFloat(150, 'f', -1, 64),     // overlapEnd
+		strconv.Itoa(2),                           // segmentCount
+		strings.Join([]string{"bar", "foo"}, ","), // segmentList
 	}, "expected [100,150] overlap between the segments")
 }
