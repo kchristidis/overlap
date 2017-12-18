@@ -26,6 +26,7 @@ func (p *pointImpl) addTo(segmentID string) int {
 }
 
 func (p *pointImpl) belongsTo() []string {
+	sort.Strings(p.in)
 	return p.in
 }
 
@@ -141,20 +142,20 @@ func Calculate(filePath string, hasHeaders bool) ([][]string, error) {
 		// What are the segments that go over this point?
 		segStart := points[i].belongsTo()
 		for j := len(points) - 1; j > i; j-- {
-			var overlap []string
+			var overlaps []string
 			// What are the segments that go over this point?
 			segEnd := points[j].belongsTo()
 			// What is the overlap between segStart and segEnd?
 			for _, seg1 := range segStart {
 				for _, seg2 := range segEnd {
 					if strings.Compare(seg1, seg2) == 0 {
-						overlap = append(overlap, seg1)
+						overlaps = append(overlaps, seg1)
 						break // Let's move on to the next item in segStart
 					}
 				}
 			}
-			if len(overlap) > 1 {
-				resMap[points[i].loc][points[j].loc] = overlap
+			if len(overlaps) > 1 {
+				resMap[points[i].loc][points[j].loc] = overlaps
 			}
 			// Now let's examine the next segEnd (if any)
 		}
@@ -166,9 +167,9 @@ func Calculate(filePath string, hasHeaders bool) ([][]string, error) {
 	header := []string{"overlap_length", "overlap_start", "overlap_end", "segment_count", "segment_list"}
 	results = append(results, header)
 	// Append the records
-	result := make([]string, len(header))
 	for k1, v1 := range resMap {
 		for k2, v2 := range v1 {
+			result := make([]string, len(header))
 			result[overlapLength] = strconv.FormatFloat(k2-k1, 'f', -1, 64)
 			result[overlapStart] = strconv.FormatFloat(k1, 'f', -1, 64)
 			result[overlapEnd] = strconv.FormatFloat(k2, 'f', -1, 64)

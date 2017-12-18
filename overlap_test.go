@@ -55,17 +55,27 @@ func TestCalculate(t *testing.T) {
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
 	// https://stackoverflow.com/a/39806983/2363529
-	lines := []byte("id,start,end" + "\n" + "foo,50.0,150.0" + "\n" + "bar,100,200.0")
+	lines := []byte("id,start,end" + "\n" +
+		"foo,50.0,150.0" + "\n" +
+		"bar,100,200.0" + "\n" +
+		"baz,199,201")
 	_, err = f.Write(lines)
 	require.Nil(t, err, "could not write to input file")
 	res, err := Calculate(f.Name(), true)
 	require.Nil(t, err, "expected no error")
-	require.Equal(t, len(res), 2, "expected 1 overlap") // increment by 1 to account for the header
+	require.Equal(t, len(res), 3, "expected 2 overlaps") // increment by 1 to account for the header
 	require.Equal(t, res[1], []string{
 		strconv.FormatFloat(50, 'f', -1, 64),      // overlapLength
 		strconv.FormatFloat(100, 'f', -1, 64),     // overlapStart
 		strconv.FormatFloat(150, 'f', -1, 64),     // overlapEnd
 		strconv.Itoa(2),                           // segmentCount
 		strings.Join([]string{"bar", "foo"}, ","), // segmentList
-	}, "expected [100,150] overlap between the segments")
+	})
+	require.Equal(t, res[2], []string{
+		strconv.FormatFloat(1, 'f', -1, 64),       // overlapLength
+		strconv.FormatFloat(199, 'f', -1, 64),     // overlapStart
+		strconv.FormatFloat(200, 'f', -1, 64),     // overlapEnd
+		strconv.Itoa(2),                           // segmentCount
+		strings.Join([]string{"bar", "baz"}, ","), // segmentList
+	})
 }
