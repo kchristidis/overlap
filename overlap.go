@@ -150,7 +150,11 @@ func Calculate(filePath string) ([][]string, error) {
 
 	// Return
 	var results [][]string
-	result := make([]string, segmentList+1)
+	// Write the header
+	header := []string{"overlap_length", "overlap_start", "overlap_end", "segment_count", "segment_list"}
+	results = append(results, header)
+	// Append the records
+	result := make([]string, len(header))
 	for k1, v1 := range resMap {
 		for k2, v2 := range v1 {
 			result[overlapLength] = strconv.FormatFloat(k2-k1, 'f', -1, 64)
@@ -161,6 +165,5 @@ func Calculate(filePath string) ([][]string, error) {
 			results = append(results, result)
 		}
 	}
-
 	return results, nil
 }

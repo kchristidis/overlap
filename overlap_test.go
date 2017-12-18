@@ -52,8 +52,8 @@ func TestCalculate(t *testing.T) {
 	require.Nil(t, err, "could not write to input file")
 	res, err := Calculate(f.Name())
 	require.Nil(t, err, "expected no error")
-	require.Equal(t, len(res), 1, "expected 1 overlap")
-	require.Equal(t, res[0], []string{
+	require.Equal(t, len(res), 2, "expected 1 overlap") // increment by 1 to account for the header
+	require.Equal(t, res[1], []string{
 		strconv.FormatFloat(50, 'f', -1, 64),      // overlapLength
 		strconv.FormatFloat(100, 'f', -1, 64),     // overlapStart
 		strconv.FormatFloat(150, 'f', -1, 64),     // overlapEnd
