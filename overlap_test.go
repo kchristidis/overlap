@@ -22,7 +22,7 @@ func TestBadFile(t *testing.T) {
 	f, err := ioutil.TempFile("", "bad.file")
 	require.Nil(t, err, "could not create temp file")
 	require.Nil(t, os.Remove(f.Name()), "could not remove temp file")
-	_, err = Calculate(f.Name())
+	_, err = Calculate(f.Name(), false)
 	require.Error(t, err, "expected error")
 }
 
@@ -30,14 +30,22 @@ func TestBadLines(t *testing.T) {
 	f, err := ioutil.TempFile("", "good.file")
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
-	lines := make([][]byte, 3)
-	lines[0] = []byte("0,100")
-	lines[1] = []byte("0,foo,200")
-	lines[2] = []byte("0,100,foo")
-	for i := range lines { // https://stackoverflow.com/a/39806983/2363529
-		_, err = f.WriteAt(lines[i], 0)
+
+	type testInput struct {
+		line          []byte
+		assumeHeaders bool
+	}
+	testInputs := []testInput{
+		testInput{},
+		testInput{line: []byte("foo,100"), assumeHeaders: false},
+		testInput{line: []byte("foo,bar,200"), assumeHeaders: false},
+		testInput{line: []byte("foo,100,bar"), assumeHeaders: false},
+		testInput{line: []byte("foo,100,bar"), assumeHeaders: true},
+	}
+	for _, testInput := range testInputs { // https://stackoverflow.com/a/39806983/2363529
+		_, err = f.WriteAt(testInput.line, 0)
 		require.Nil(t, err, "could not write to input file")
-		_, err = Calculate(f.Name())
+		_, err = Calculate(f.Name(), testInput.assumeHeaders)
 		require.Error(t, err, "expected error")
 	}
 }
@@ -47,10 +55,10 @@ func TestCalculate(t *testing.T) {
 	require.Nil(t, err, "could not create temp file")
 	defer os.Remove(f.Name())
 	// https://stackoverflow.com/a/39806983/2363529
-	lines := []byte("foo,50.0,150.0" + "\n" + "bar,100,200.0")
+	lines := []byte("id,start,end" + "\n" + "foo,50.0,150.0" + "\n" + "bar,100,200.0")
 	_, err = f.Write(lines)
 	require.Nil(t, err, "could not write to input file")
-	res, err := Calculate(f.Name())
+	res, err := Calculate(f.Name(), true)
 	require.Nil(t, err, "expected no error")
 	require.Equal(t, len(res), 2, "expected 1 overlap") // increment by 1 to account for the header
 	require.Equal(t, res[1], []string{

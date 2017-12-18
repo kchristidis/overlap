@@ -49,7 +49,7 @@ const (
 //		segment_id(string),segment_start(float64),segment_end(float64)
 //
 // The type of each field is included in parentheses.
-func Calculate(filePath string) ([][]string, error) {
+func Calculate(filePath string, hasHeaders bool) ([][]string, error) {
 	// Load a CSV file with tuples [id, start, end]
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -64,23 +64,35 @@ func Calculate(filePath string) ([][]string, error) {
 		return nil, fmt.Errorf("could not read CSV file = %s", err)
 	}
 
+	// Sanitize the input
+	if len(records) == 0 {
+		return nil, fmt.Errorf("file is empty")
+	}
+	if hasHeaders {
+		if len(records) == 1 {
+			return nil, fmt.Errorf("file has no segments")
+		}
+		// Otherwise just omit the header line
+		records = records[1:]
+	}
+
 	// Parse into segments
 	var segment segmentImpl
 	var segments []segmentImpl
 	for i, record := range records {
 		// Does the record have 3 fields?
 		if len(record) != 3 {
-			return nil, fmt.Errorf("expected 3 fields per line in row %d, got %d instead", i, len(record))
+			return nil, fmt.Errorf("expected 3 fields per line in row %d, got %d instead", i+1, len(record))
 		}
 		// The record has 3 fields as expected
 		// Convert to the appropriate types
 		segment.start, err = strconv.ParseFloat(record[1], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 2, row %d to a floating-point number = %s", record[1], i, err)
+			return nil, fmt.Errorf("could not convert element '%v' in column 2, row %d to a floating-point number = %s", record[1], i+1, err)
 		}
 		segment.end, err = strconv.ParseFloat(record[2], 64)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert element %v in column 3, row %d to a floating-point number = %s", record[2], i, err)
+			return nil, fmt.Errorf("could not convert element '%v' in column 3, row %d to a floating-point number = %s", record[2], i+1, err)
 		}
 		segment.id = record[0]
 		segments = append(segments, segment)
