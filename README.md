@@ -1,6 +1,8 @@
 # overlap
 
-overlap is a library for identifying overlaps among segments.
+![GoDoc](https://godoc.org/github.com/kchristidis/overlap?status.svg)
+
+overlap is a library for identifying overlaps on a list of segments.
 
 ## Motivation
 

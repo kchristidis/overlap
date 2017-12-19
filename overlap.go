@@ -1,18 +1,17 @@
-// Package overlap identifies overlaps among segments.
+// Package overlap identifies overlaps on a list of segments.
 //
-// A segment is  defined by the following tuple:
-// - segment_id (type: string)
-// - segment_start (type: float64)
-// - segment_end (type: float64)
+// A segment is  defined by the tuple:
+// 	segment_id, segment_start, segment_end
+// segment_start and segment_end mark the beginning and the end of the segment
+// on the x-axis.
 //
-// An overlap between two or more segments is defined by the following tuple:
-// - overlap_length: the length of the overlapping segment, expressed
-// 		in the same units as segment_start and segment_end
-// - overlap_start: the beginning of the overlapping segment
-// - overlap_end: the end of the overlapping segment
-// - segment_count: the number of segments crossing over the overlap
-// - segment_list: a comma-separated list of all segment_id's crossing
-// 		over the overlap
+// An overlap between two or more segments is defined by the tuple:
+// 	overlap_length, overlap_start, overlap_end, segment_count, segment_list
+// overlap_length is the length of the overlapping segment, expressed in the same units
+// as segment_start and segment_end. overlap_start and overlap_end mark the beginning
+// and the end of the overlapping segment. segment_count is the number of segments
+// crossing over the overlap; segment_list carries the comma-separated list of all
+// segment_id's crossing over the overlap.
 //
 // This package then reads a comma-separated values (CSV) file, where each
 // CSV record identifies a segment. It produces a CSV file with all the
@@ -63,13 +62,14 @@ const (
 	segmentList
 )
 
-// Calculate reads a CSV file with segments and returns a slice identifying their overlaps.
-// Each CSV record should identify a segment and consist of exactly three fields:
+// Calculate reads a CSV file with segments (filePath) and returns a list of all of their overlaps (results).
+//
+// Each CSV record in filePath should identify a segment and consist of exactly three fields:
 //
 //		segment_id(string),segment_start(float64),segment_end(float64)
 //
 // The type of each field is included in parentheses.
-func Calculate(filePath string, hasHeaders bool) ([][]string, error) {
+func Calculate(filePath string, hasHeaders bool) (results [][]string, err error) {
 	// Load a CSV file with tuples [id, start, end]
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -180,8 +180,6 @@ func Calculate(filePath string, hasHeaders bool) ([][]string, error) {
 		}
 	}
 
-	// Return
-	var results [][]string
 	// Write the header
 	header := []string{"overlap_length", "overlap_start", "overlap_end", "segment_count", "segment_list"}
 	results = append(results, header)
