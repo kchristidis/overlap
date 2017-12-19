@@ -1,6 +1,8 @@
 # overlap
 
-![GoDoc](https://godoc.org/github.com/kchristidis/overlap?status.svg)
+[![GoDoc](https://godoc.org/github.com/kchristidis/overlap?status.svg)](https://github.com/kchristidis/overlap)
+[![Build Status](https://travis-ci.org/kchristidis/overlap.svg?branch=master)](https://travis-ci.org/kchristidis/overlap)
+
 
 overlap is a library for identifying overlaps on a list of segments.
 
