@@ -1,3 +1,22 @@
+// Package overlap identifies overlaps among segments.
+//
+// A segment is  defined by the following tuple:
+// - segment_id (type: string)
+// - segment_start (type: float64)
+// - segment_end (type: float64)
+//
+// An overlap between two or more segments is defined by the following tuple:
+// - overlap_length: the length of the overlapping segment, expressed
+// 		in the same units as segment_start and segment_end
+// - overlap_start: the beginning of the overlapping segment
+// - overlap_end: the end of the overlapping segment
+// - segment_count: the number of segments crossing over the overlap
+// - segment_list: a comma-separated list of all segment_id's crossing
+// 		over the overlap
+//
+// This package then reads a comma-separated values (CSV) file, where each
+// CSV record identifies a segment. It produces a CSV file with all the
+// identified overlaps, one overlap per CSV record.
 package overlap
 
 import (
