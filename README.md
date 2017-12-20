@@ -1,6 +1,6 @@
 # overlap
 
-[![GoDoc](https://godoc.org/github.com/kchristidis/overlap?status.svg)](https://github.com/kchristidis/overlap)
+[![GoDoc](https://godoc.org/github.com/kchristidis/overlap?status.svg)](https://godoc.org/github.com/kchristidis/overlap)
 [![Build Status](https://travis-ci.org/kchristidis/overlap.svg?branch=master)](https://travis-ci.org/kchristidis/overlap)
 
 
