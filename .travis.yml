@@ -2,8 +2,8 @@ language: go
 
 go: 
   - 1.9
-  - "1.10"
-  - tip 
+  - 1.x
+  - tip
 
 script:
   - go test -v -cover ./...
